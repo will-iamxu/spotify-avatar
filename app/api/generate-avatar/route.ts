@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log(`Running Replicate model: ${MODEL_NAME}`);
     // Use the model name without the version hash
-    const output = await replicate.run(
+    const output: unknown = await replicate.run( // Explicitly type output as unknown initially
       MODEL_NAME,
       {
         input: {
@@ -72,25 +72,21 @@ export async function POST(request: NextRequest) {
 
     let imageUrl: string | null = null;
 
-    // --- Updated Output Handling for Recraft Structure ---
-    // Check if output is an object and has an 'output' property which is a string URL
+
+
     if (typeof output === 'object' && output !== null && 'output' in output && typeof output.output === 'string') {
-        // Basic check if it looks like a URL - improve if needed
         if (output.output.startsWith('http://') || output.output.startsWith('https://')) {
             imageUrl = output.output;
         }
     }
-    // Keep the check for array just in case (though less likely now)
     else if (Array.isArray(output) && output.length > 0 && typeof output[0] === 'string') {
       imageUrl = output[0];
     }
-    // Keep the check for direct string URL (less likely)
     else if (typeof output === 'string') {
        if (output.startsWith('http://') || output.startsWith('https://')) {
-           imageUrl = output;
+           imageUrl = output; // Assign the string directly
        }
     }
-    // --- End Updated Output Handling ---
 
     if (imageUrl) {
       return NextResponse.json({ imageUrl: imageUrl });

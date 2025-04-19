@@ -1,5 +1,6 @@
 'use client'; // Needed for hooks like useSearchParams and useState/useEffect
 
+import Image from 'next/image'; // Import next/image
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SpotifyWebApi from 'spotify-web-api-node';
@@ -136,17 +137,19 @@ export default function DashboardPage() {
                 {/* Avatar Generation Section */}
                 {!loading && !error && (
                     <div className="mt-4">
-                        {/* Display Generated Avatar - Increased Size */}
+                        {/* Display Generated Avatar - Use next/image */}
                         {avatarUrl && (
                             <div className="mb-6 transition-opacity duration-500 ease-in-out">
-                                <img
+                                {/* Replace <img> with <Image /> */}
+                                <Image
                                     src={avatarUrl}
                                     alt="Generated AI Avatar"
-                                    // Increased size (e.g., w-80 h-80 or w-96 h-96)
-                                    className="w-80 h-80 rounded-lg object-cover mx-auto shadow-lg border-2 border-purple-500"
-                                    width={320} // Match width class
-                                    height={320} // Match height class
-                                 />
+                                    // width and height are required for next/image
+                                    width={320} // Match width class w-80 (80 * 4 = 320)
+                                    height={320} // Match height class h-80 (80 * 4 = 320)
+                                    className="rounded-lg object-cover mx-auto shadow-lg border-2 border-purple-500"
+                                    priority // Optional: Prioritize loading if it's LCP
+                                />
                                  {/* Download Button */}
                                  <button
                                      onClick={handleDownload}
