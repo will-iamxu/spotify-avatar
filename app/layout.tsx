@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-// Import Poppins font
 import { Poppins } from "next/font/google";
+import SessionProviderWrapper from './SessionProviderWrapper'; // Import the wrapper
 import "./globals.css";
 
 // Configure Poppins font
@@ -21,8 +21,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      {/* Apply font class to body */}
-      <body className={poppins.className}>{children}</body>
+      <body className={poppins.className}>
+        {/* Wrap children with the SessionProviderWrapper */}
+        <SessionProviderWrapper>
+          {children}
+        </SessionProviderWrapper>
+      </body>
     </html>
   );
 }
