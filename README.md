@@ -108,5 +108,3 @@ Ready to deploy to the cloud? Platforms like [Vercel](https://vercel.com/) make 
 5.  **Final Step:** Update the **Redirect URI** in your Spotify application settings to include your Vercel deployment callback URL: `https://your-app-name.vercel.app/api/auth/callback/spotify`.
 
 ---
-
-*(Optional: Add sections for Usage Guide, Contributing, License, etc.)*
