@@ -38,18 +38,25 @@ export async function POST(request: NextRequest) {
   }
 
   // --- Updated Prompt Engineering ---
-  const topGenres = genres.slice(0, 5).join(', '); // Use top 5 genres
+  const topGenres = genres.slice(0, 3).join(', '); // Use top 3 genres for theme
   const topArtistNames = artists && artists.length > 0
-    ? artists.slice(0, 5).map(a => a.name).join(', ') // Use top 5 artists
-    : '';
+    ? artists.slice(0, 3).map(a => a.name) // Use top 3 artists
+    : [];
 
-  // Create a prompt focusing on a fictional character/creature
-  let prompt = `Create a unique fictional creature that visually embodies the musical essence of these genres: ${topGenres}.`;
-  if (topArtistNames) {
-    prompt += ` The character's design should feel inspired by the sound and mood of artists like ${topArtistNames}.`;
+  // Create a prompt for a Pokémon-style trading card
+  let prompt = `Create a Pokémon-style trading card featuring a unique creature inspired by the musical genres: ${topGenres}.`;
+  if (topArtistNames.length > 0) {
+    prompt += ` The creature's design and energy should reflect the vibe of artists like ${topArtistNames.join(', ')}.`;
   }
-  // Specify style and avoid realistic portraits
-  prompt += ` Style: fantasy illustration, character concept art, vibrant colors, dynamic pose. Avoid photorealism and realistic human portraits. The character should look imaginative and unique, not like a regular person.`;
+  prompt += ` The card should include:
+- The creature's name (invent something creative based on the music).
+- HP (e.g., 120 HP).
+- An illustration of the creature in a dynamic pose, fitting the card frame. Style: vibrant, anime-inspired, trading card art.
+- One or two attacks. Name the attacks based on the genres or artists (e.g., 'Synth Wave Burst' or 'Indie Rock Charge'). Include damage numbers (e.g., 60, 100+).
+- Weakness and Resistance symbols (optional, can be generic energy types).
+- Retreat cost (e.g., 2 energy symbols).
+- A short flavor text description at the bottom relating the creature to its musical inspiration.
+Layout: Standard Pokémon TCG card layout. Avoid photorealism. Focus on a clean, illustrated trading card look.`;
 
   console.log("Generated Prompt:", prompt);
 
