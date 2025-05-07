@@ -15,6 +15,13 @@ interface Artist {
     genres: string[];
 }
 
+// Define a type for the track data we expect
+interface Track {
+    id: string;
+    name: string;
+    artists: { name: string }[];
+}
+
 // Initialize the Spotify API client
 const spotifyApi = new SpotifyWebApi({
     clientId: process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
@@ -30,6 +37,7 @@ export default function DashboardClient() {
     // const accessToken = searchParams.get('access_token');
 
     const [topArtists, setTopArtists] = useState<Artist[]>([]);
+    const [topTracks, setTopTracks] = useState<Track[]>([]); // Add state for top tracks
     // Adjust initial loading state based on session status
     const [loading, setLoading] = useState<boolean>(status === 'loading');
     const [error, setError] = useState<string | null>(null);
@@ -44,10 +52,16 @@ export default function DashboardClient() {
             spotifyApi.setAccessToken(accessToken);
             setLoading(true);
             setError(null); // Clear previous errors
-            spotifyApi.getMyTopArtists({ limit: 20, time_range: 'long_term' })
-                .then(data => {
-                    console.log('Long term top artists:', data.body.items);
-                    setTopArtists(data.body.items as Artist[]);
+
+            Promise.all([
+                spotifyApi.getMyTopArtists({ limit: 20, time_range: 'long_term' }),
+                spotifyApi.getMyTopTracks({ limit: 10, time_range: 'long_term' }) // Fetch top tracks
+            ])
+                .then(([artistData, trackData]) => {
+                    console.log('Long term top artists:', artistData.body.items);
+                    setTopArtists(artistData.body.items as Artist[]);
+                    console.log('Long term top tracks:', trackData.body.items);
+                    setTopTracks(trackData.body.items as Track[]);
                 })
                 .catch(err => {
                     console.error('Error fetching top artists:', err);
@@ -75,7 +89,7 @@ export default function DashboardClient() {
     // --- Handler for Avatar Generation ---
     const handleGenerateAvatar = async () => {
         // ... (existing handleGenerateAvatar logic) ...
-        if (!topArtists || topArtists.length === 0) {
+        if ((!topArtists || topArtists.length === 0) && (!topTracks || topTracks.length === 0)) {
             setGenerationError("Cannot generate avatar without Spotify data. Please wait or log in again.");
             return;
         }
@@ -84,12 +98,14 @@ export default function DashboardClient() {
         setAvatarUrl(null);
         const allGenres = topArtists.flatMap(artist => artist.genres);
         const uniqueGenres = [...new Set(allGenres)].slice(0, 15);
-        const artistDataForApi = topArtists.slice(0, 15).map(artist => ({ name: artist.name }));
+        const artistDataForApi = topArtists.slice(0, 5).map(artist => ({ name: artist.name }));
+        const trackDataForApi = topTracks.slice(0, 5).map(track => ({ name: track.name, artists: track.artists.map(a => a.name) }));
+
         try {
             const response = await fetch('/api/generate-avatar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ genres: uniqueGenres, artists: artistDataForApi }),
+                body: JSON.stringify({ genres: uniqueGenres, artists: artistDataForApi, tracks: trackDataForApi }), // Add tracks to API call
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || `HTTP error! status: ${response.status}`);

@@ -10,6 +10,7 @@ const replicate = new Replicate({
 interface GenerateAvatarRequest {
   genres?: string[];
   artists?: { name: string }[]; // Expect an array of objects with a name property
+  tracks?: { name: string; artists: string[] }[]; // Add tracks to the request
 }
 
 // Define the specific Replicate model to use (removing version hash as requested)
@@ -30,24 +31,35 @@ export async function POST(request: NextRequest) {
   }
 
   // Destructure both genres and artists
-  const { genres, artists } = requestBody;
+  const { genres, artists, tracks } = requestBody; // Add tracks
 
   // Keep genre check, add optional artist check if needed
-  if (!genres || genres.length === 0) {
-    return NextResponse.json({ error: 'Genres are required to generate a prompt' }, { status: 400 });
+  if ((!genres || genres.length === 0) && (!artists || artists.length === 0) && (!tracks || tracks.length === 0)) {
+    return NextResponse.json({ error: 'Genres, artists, or tracks are required to generate a prompt' }, { status: 400 });
   }
 
   // --- Updated Prompt Engineering ---
-  const topGenres = genres.slice(0, 3).join(', '); // Use top 3 genres for theme
+  const topGenres = genres && genres.length > 0 ? genres.slice(0, 3).join(', ') : '';
   const topArtistNames = artists && artists.length > 0
-    ? artists.slice(0, 3).map(a => a.name) // Use top 3 artists
+    ? artists.slice(0, 3).map(a => a.name)
+    : [];
+  const topTrackInfo = tracks && tracks.length > 0
+    ? tracks.slice(0, 2).map(t => `${t.name} by ${t.artists.join(', ')}`) // Get name and artists for top 2 tracks
     : [];
 
   // Create a prompt for a Pokémon-style trading card
-  let prompt = `Create a Pokémon-style trading card featuring a unique creature inspired by the musical genres: ${topGenres}.`;
-  if (topArtistNames.length > 0) {
-    prompt += ` The creature's design and energy should reflect the vibe of artists like ${topArtistNames.join(', ')}.`;
+  let prompt = `Create a Pokémon-style trading card featuring a unique creature.`;
+
+  if (topGenres) {
+    prompt += ` The creature is inspired by the musical genres: ${topGenres}.`;
   }
+  if (topArtistNames.length > 0) {
+    prompt += ` Its design and energy should reflect the vibe of artists like ${topArtistNames.join(', ')}.`;
+  }
+  if (topTrackInfo.length > 0) {
+    prompt += ` It also embodies elements from tracks such as ${topTrackInfo.join('; and ')}.`;
+  }
+
   prompt += ` The card should include:
 - The creature's name (invent something creative based on the music).
 - HP (e.g., 120 HP).
