@@ -10,8 +10,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Spotify AI Avatar",
-  description: "Generate an AI avatar based on your Spotify data",
+  title: "SoundCard - Your Musical DNA Visualized",
+  description: "Transform your Spotify listening history into stunning AI-generated trading cards. Discover your musical DNA and share your unique sound profile.",
 };
 
 export default function RootLayout({

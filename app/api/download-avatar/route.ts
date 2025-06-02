@@ -1,43 +1,81 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../../lib/auth';
+import { prisma } from '../../../lib/db';
+import { getSignedDownloadUrl } from '../../../lib/s3';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const imageUrl = searchParams.get('url');
+  const avatarId = searchParams.get('id');
 
-  if (!imageUrl) {
-    return NextResponse.json({ error: 'Image URL is required' }, { status: 400 });
+  if (!avatarId) {
+    return NextResponse.json({ error: 'Avatar ID is required' }, { status: 400 });
+  }
+
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    // Validate the URL looks like a Replicate URL (basic check)
-    if (!imageUrl.startsWith('https://replicate.delivery/')) {
-       return NextResponse.json({ error: 'Invalid image URL provided' }, { status: 400 });
+    // Find the user
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Fetch the image data from the Replicate URL
-    const imageResponse = await fetch(imageUrl);
+    // Find the avatar and verify ownership
+    const avatar = await prisma.avatar.findFirst({
+      where: {
+        id: avatarId,
+        userId: user.id,
+        status: 'COMPLETED'
+      }
+    });
 
+    if (!avatar) {
+      return NextResponse.json({ error: 'Avatar not found or not ready' }, { status: 404 });
+    }
+
+    // Extract S3 key from URL (s3://bucket/key format)
+    const s3Key = avatar.imageUrl.replace(/^s3:\/\/[^\/]+\//, '');
+    
+    // Get signed URL for download
+    const signedUrl = await getSignedDownloadUrl(s3Key);
+
+    // Fetch the image from S3
+    const imageResponse = await fetch(signedUrl);
     if (!imageResponse.ok) {
-      throw new Error(`Failed to fetch image: ${imageResponse.statusText}`);
+      throw new Error('Failed to fetch image from S3');
     }
 
-    // Get the image data as a Blob
     const imageBlob = await imageResponse.blob();
+    const filename = `spotify-avatar-${avatarId}.png`;
 
-    // Determine filename (can be dynamic if needed)
-    const filename = 'spotify-avatar.webp';
+    // Log the download
+    await prisma.apiUsage.create({
+      data: {
+        userId: user.id,
+        endpoint: 'download-avatar',
+        metadata: {
+          avatarId,
+          s3Key
+        }
+      }
+    });
 
-    // Create response headers to force download
     const headers = new Headers();
     headers.set('Content-Disposition', `attachment; filename="${filename}"`);
-    headers.set('Content-Type', imageBlob.type || 'image/webp'); // Use blob type or default
+    headers.set('Content-Type', 'image/png');
 
-    // Return the image data with download headers
     return new NextResponse(imageBlob, { status: 200, headers });
 
   } catch (error: unknown) {
-    console.error('Error proxying image download:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to download image';
+    console.error('Error downloading avatar:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to download avatar';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
