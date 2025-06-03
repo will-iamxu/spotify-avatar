@@ -30,11 +30,9 @@ Transform your music taste into stunning AI-generated trading cards! SoundCard a
 ### Database & Storage
 - **PostgreSQL Database** with Prisma ORM
 - **AWS S3 Integration** - Secure image storage with signed URLs
-- **Usage Tracking** - Complete API usage analytics
 - **Avatar Collection** - Personal gallery of generated cards
 
 ### Security & Performance
-- **Intelligent Rate Limiting** - Tier-based request limits
 - **CloudWatch Logging** - Comprehensive monitoring
 - **Secure File Handling** - Direct S3 uploads with presigned URLs
 - **Optimized Images** - Next.js image optimization
@@ -42,7 +40,7 @@ Transform your music taste into stunning AI-generated trading cards! SoundCard a
 ### User Experience
 - **Modern Responsive UI** - Beautiful gradient designs with Tailwind CSS
 - **Framer Motion Animations** - Smooth transitions and interactions
-- **User Statistics** - Track your collection and musical insights
+- **Personal Collection** - Track and manage your generated cards
 - **One-Click Downloads** - Save your cards locally
 - **Session Management** - Automatic token refresh
 
@@ -52,10 +50,9 @@ Transform your music taste into stunning AI-generated trading cards! SoundCard a
 - **Production Access** - Working on expanding access through official channels
 
 ### Scalability Ready
-- **User Tiers** - FREE, PRO, ENTERPRISE support built-in
-- **Usage Analytics** - Detailed API cost tracking
 - **Retry Logic** - Robust error handling
 - **Performance Monitoring** - CloudWatch integration
+- **Extensible Architecture** - Ready for future TCG features
 
 ## Tech Stack
 
@@ -197,12 +194,6 @@ The application uses PostgreSQL with Prisma ORM. Here are the main models:
 - **User** - User profiles with Spotify integration
 - **Avatar** - Generated trading cards with metadata
 - **Session** & **Account** - NextAuth.js authentication
-- **ApiUsage** - API usage tracking and analytics
-
-### User Tiers
-- **FREE** - 5 generations per minute
-- **PRO** - 20 generations per minute  
-- **ENTERPRISE** - 100 generations per minute
 
 ## Key Features Explained
 
@@ -221,7 +212,6 @@ Cards are generated using a sophisticated prompt that includes:
 - **Real-time Sync**: Fresh data on every session
 
 ### Security Features
-- **Rate Limiting**: Prevents API abuse with tier-based limits
 - **Secure Storage**: AWS S3 with presigned URLs
 - **Session Management**: Automatic token refresh
 - **Input Validation**: Comprehensive request validation
@@ -333,9 +323,6 @@ npm run lint            # Run ESLint
 - **Prompt Engineering**: `app/api/generate-avatar/route.ts`
 - **Model Settings**: Modify Replicate model parameters
 
-### Rate Limits
-- **Configure Limits**: `lib/rate-limiter.ts`
-- **Tier Management**: `prisma/schema.prisma`
 
 ### Music Data
 - **Spotify Scopes**: `lib/auth.ts`
