@@ -2,6 +2,8 @@ import { AuthOptions, Account, User, Session } from 'next-auth';
 import { JWT } from 'next-auth/jwt';
 import SpotifyProvider from 'next-auth/providers/spotify';
 import SpotifyWebApi from 'spotify-web-api-node';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import { prisma } from './db';
 
 const scopes = [
     'user-read-private',
@@ -39,6 +41,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 }
 
 export const authOptions: AuthOptions = {
+    adapter: PrismaAdapter(prisma),
     providers: [
         SpotifyProvider({
             clientId: process.env.SPOTIFY_CLIENT_ID!,

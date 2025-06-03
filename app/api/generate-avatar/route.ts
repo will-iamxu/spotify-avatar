@@ -123,20 +123,29 @@ Layout: Standard Pokémon TCG card layout. Avoid photorealism. Focus on a clean,
 
   try {
     console.log(`Running Replicate model: ${MODEL_NAME}`);
-    // Use retry logic for Replicate API call
-    const output: unknown = await replicateApiCall(
-      () => replicate.run(
-        MODEL_NAME,
-        {
-          input: {
-            prompt: prompt,
-            size: "1024x1024",
-            num_outputs: 1,
-          }
-        }
-      ),
-      'avatar-generation'
+    
+    // Create a timeout promise to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Replicate API timeout after 50 seconds')), 50000)
     );
+    
+    // Use retry logic for Replicate API call with timeout
+    const output: unknown = await Promise.race([
+      replicateApiCall(
+        () => replicate.run(
+          MODEL_NAME,
+          {
+            input: {
+              prompt: prompt,
+              size: "1024x1024",
+              num_outputs: 1,
+            }
+          }
+        ),
+        'avatar-generation'
+      ),
+      timeoutPromise
+    ]);
 
     // Log the raw output to understand its structure
     console.log("Replicate Output:", output);
@@ -160,19 +169,16 @@ Layout: Standard Pokémon TCG card layout. Avoid photorealism. Focus on a clean,
     }
 
     if (imageUrl) {
-      // Find or create user in database
-      let user = await prisma.user.findUnique({
+      // Find user in database (should exist due to Prisma adapter)
+      const user = await prisma.user.findUnique({
         where: { email: session.user.email }
       });
 
       if (!user) {
-        user = await prisma.user.create({
-          data: {
-            email: session.user.email,
-            name: session.user.name,
-            image: session.user.image,
-          }
-        });
+        return NextResponse.json(
+          { error: 'User not found. Please try logging in again.' },
+          { status: 401 }
+        );
       }
 
       // Check rate limit
@@ -267,16 +273,42 @@ Layout: Standard Pokémon TCG card layout. Avoid photorealism. Focus on a clean,
   } catch (error: unknown) {
     console.error('Error calling Replicate API:', error);
     let errorMessage = 'Failed to generate avatar.';
+    let statusCode = 500;
 
     if (error instanceof Error) {
-        errorMessage = error.message;
+        if (error.message.includes('timeout')) {
+          errorMessage = 'Avatar generation timed out. Please try again.';
+          statusCode = 504;
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = 'Rate limit exceeded. Please wait before trying again.';
+          statusCode = 429;
+        } else {
+          errorMessage = error.message;
+        }
     } else if (typeof error === 'string') {
         errorMessage = error;
     } else if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
-        errorMessage = `Replicate API Error: ${error.message}`;
-        console.error('Replicate Error Details:', error);
+        errorMessage = `API Error: ${error.message}`;
+        console.error('API Error Details:', error);
     }
 
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    // Ensure we always return valid JSON
+    try {
+      return NextResponse.json({ 
+        error: errorMessage,
+        code: 'GENERATION_FAILED',
+        timestamp: new Date().toISOString()
+      }, { status: statusCode });
+    } catch {
+      // Final fallback if JSON serialization fails
+      return new Response(JSON.stringify({ 
+        error: 'An unexpected error occurred during avatar generation.',
+        code: 'GENERATION_FAILED',
+        timestamp: new Date().toISOString()
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
   }
 }

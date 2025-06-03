@@ -28,16 +28,25 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Generate signed URLs for avatar images
+    // Generate signed URLs for avatar images (with fallback for missing S3 config)
     const avatarsWithUrls = await Promise.all(
       user.avatars.map(async (avatar) => {
         let signedUrl = null;
         if (avatar.status === 'COMPLETED' && avatar.imageUrl) {
           try {
-            const s3Key = avatar.imageUrl.replace(/^s3:\/\/[^\/]+\//, '');
-            signedUrl = await getSignedDownloadUrl(s3Key);
+            // Check if S3 is properly configured
+            if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY && process.env.AWS_S3_BUCKET_NAME) {
+              const s3Key = avatar.imageUrl.replace(/^s3:\/\/[^\/]+\//, '');
+              signedUrl = await getSignedDownloadUrl(s3Key);
+            } else {
+              console.warn('S3 credentials not configured, serving avatars without signed URLs');
+              // If S3 not configured, use the imageUrl directly (for Replicate URLs)
+              signedUrl = avatar.imageUrl.startsWith('s3://') ? null : avatar.imageUrl;
+            }
           } catch (error) {
             console.error(`Failed to generate signed URL for avatar ${avatar.id}:`, error);
+            // Fallback to original URL if it's not an S3 URL
+            signedUrl = avatar.imageUrl.startsWith('s3://') ? null : avatar.imageUrl;
           }
         }
         
