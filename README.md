@@ -2,19 +2,30 @@
 
 Transform your music taste into stunning AI-generated trading cards! SoundCard analyzes your Spotify listening habits and creates unique Pokémon-style trading cards that represent your musical DNA.
 
+🎴 **Coming Soon:** We're actively developing SoundCard into a full trading card game where you can trade cards with friends, battle with your musical creatures, and collect rare cards based on unique listening patterns!
+
 ## Features
 
-### Spotify Integration
+### Current Features
+
+#### Spotify Integration
 - **Secure OAuth Authentication** via NextAuth.js
 - **Dynamic Music Analysis** - Fetches top artists, tracks, and genres across multiple time ranges
 - **Smart Data Mixing** - Combines short-term and medium-term listening data for variety
 - **Real-time Sync** - Fresh data on every session
 
-### AI Card Generation
+#### AI Card Generation
 - **Advanced AI Models** - Powered by Replicate's Recraft-v3 model
 - **Pokémon-Style Trading Cards** - Complete with HP, attacks, and flavor text
 - **Personalized Prompts** - Cards reflect your specific artists, genres, and tracks
 - **Pack Opening Animation** - Exciting unboxing experience
+
+### Planned Features (TCG Development)
+- **Trading System** - Trade cards with other users
+- **Battle Mechanics** - Use your musical creatures in strategic battles
+- **Rare Card Collection** - Special cards for unique listening patterns
+- **Deck Building** - Construct custom decks from your music taste
+- **Tournaments** - Compete in music-based card battles
 
 ### Database & Storage
 - **PostgreSQL Database** with Prisma ORM
@@ -34,6 +45,11 @@ Transform your music taste into stunning AI-generated trading cards! SoundCard a
 - **User Statistics** - Track your collection and musical insights
 - **One-Click Downloads** - Save your cards locally
 - **Session Management** - Automatic token refresh
+
+### Developer Limitations
+- **Spotify Development Mode** - Currently limited to 25 manually approved users due to Spotify's policies
+- **Manual User Approval** - New users must be added to the allowlist by contacting the developer
+- **Production Access** - Working on expanding access through official channels
 
 ### Scalability Ready
 - **User Tiers** - FREE, PRO, ENTERPRISE support built-in
@@ -140,6 +156,7 @@ Transform your music taste into stunning AI-generated trading cards! SoundCard a
    - Create a new app or use existing one
    - Add redirect URI: `http://localhost:3000/api/auth/callback/spotify`
    - Note down Client ID and Client Secret
+   - **Important**: Add your Spotify email to the app's "Users and Access" section for testing
 
 6. **Start the development server:**
    ```bash
@@ -328,11 +345,13 @@ npm run lint            # Run ESLint
 
 ### Common Issues
 
-**Authentication Errors**
+**Spotify Authentication Errors**
 ```bash
 # Check Spotify app configuration
 # Verify callback URLs match exactly
 # Ensure client ID/secret are correct
+# Make sure your email is added to "Users and Access" in Spotify Developer Dashboard
+# Note: Spotify apps in development mode only allow 25 manually approved users
 ```
 
 **Database Connection Issues**
@@ -397,6 +416,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Transform Your Music Into Art**
 
 Made with ❤️ for music lovers and trading card enthusiasts
+
+🎴 **Coming Soon:** Full Trading Card Game Features!
 
 [⭐ Star this repo](../../stargazers) • [🐛 Report bug](../../issues) • [💡 Request feature](../../issues)
 
