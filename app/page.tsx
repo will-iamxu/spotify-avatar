@@ -74,10 +74,17 @@ export default function HomePage() {
                 Visualized
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
               Transform your Spotify listening history into stunning AI-generated trading cards. 
               Discover your musical DNA and share your unique sound profile with the world.
             </p>
+            
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-8 max-w-2xl mx-auto">
+              <p className="text-yellow-200 text-sm">
+                ⚠️ <strong>Development Mode:</strong> Due to Spotify's new policies, new users must be manually approved. 
+                Contact the developer to be added to the allowlist.
+              </p>
+            </div>
           </motion.div>
 
           <motion.div

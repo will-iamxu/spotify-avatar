@@ -12,6 +12,7 @@ model User {
   email         String    @unique
   name          String?
   image         String?
+  emailVerified DateTime?
   spotifyId     String?   @unique
   spotifyData   Json?     // Store top artists, tracks, genres
   createdAt     DateTime  @default(now())

@@ -44,7 +44,6 @@ const spotifyApi = new SpotifyWebApi({
 export default function DashboardClient() {
     // Use session hook instead of searchParams
     const { data: session, status } = useSession();
-    const accessToken = session?.accessToken as string | undefined; // Get token from session
 
     // Remove searchParams logic
     // const searchParams = useSearchParams();
@@ -73,60 +72,68 @@ export default function DashboardClient() {
 
     // --- Updated useEffect for fetching Spotify data ---
     useEffect(() => {
-        // Only run if authenticated and accessToken is available
-        if (status === 'authenticated' && accessToken) {
-            spotifyApi.setAccessToken(accessToken);
+        if (status === 'authenticated') {
             setLoading(true);
-            setError(null); // Clear previous errors
+            setError(null);
+            
+            // Fetch Spotify access token from our API
+            fetch('/api/spotify-token')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.accessToken) {
+                        spotifyApi.setAccessToken(data.accessToken);
+                        return fetchSpotifyData();
+                    } else {
+                        throw new Error('No access token available');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error getting Spotify access token:', err);
+                    setError('Failed to connect to Spotify. Please try logging in again.');
+                    setLoading(false);
+                });
+        } else if (status === 'unauthenticated') {
+            setLoading(false);
+            setError('Please log in to view your dashboard.');
+        } else if (status === 'loading') {
+            setLoading(true);
+        }
+    }, [status]);
 
+    const fetchSpotifyData = async () => {
+        try {
             // Get mix of time ranges for variety - like opening a fresh pack!
-            Promise.all([
+            const [mediumArtists, mediumTracks, shortArtists, shortTracks] = await Promise.all([
                 spotifyApi.getMyTopArtists({ limit: 12, time_range: 'medium_term' }), // 6 months
                 spotifyApi.getMyTopTracks({ limit: 6, time_range: 'medium_term' }),
                 spotifyApi.getMyTopArtists({ limit: 8, time_range: 'short_term' }), // 4 weeks - current favorites
                 spotifyApi.getMyTopTracks({ limit: 4, time_range: 'short_term' })
-            ])
-                .then(([mediumArtists, mediumTracks, shortArtists, shortTracks]) => {
-                    // Combine and shuffle for variety
-                    const allArtists = [...mediumArtists.body.items, ...shortArtists.body.items];
-                    const allTracks = [...mediumTracks.body.items, ...shortTracks.body.items];
-                    
-                    // Remove duplicates and take top selections
-                    const uniqueArtists = allArtists.filter((artist, index, self) => 
-                        index === self.findIndex(a => a.id === artist.id)
-                    ).slice(0, 20);
-                    
-                    const uniqueTracks = allTracks.filter((track, index, self) =>
-                        index === self.findIndex(t => t.id === track.id)
-                    ).slice(0, 10);
-                    
-                    console.log('Mixed timeframe artists:', uniqueArtists);
-                    setTopArtists(uniqueArtists as Artist[]);
-                    console.log('Mixed timeframe tracks:', uniqueTracks);
-                    setTopTracks(uniqueTracks as Track[]);
-                })
-                .catch(err => {
-                    console.error('Error fetching top artists:', err);
-                    // Check for token refresh error from session
-                    if (session?.error === 'RefreshAccessTokenError') {
-                        setError('Session expired. Please log in again.');
-                        signOut(); // Force sign out if refresh failed
-                    } else {
-                        setError('Failed to fetch your Spotify data.');
-                    }
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
-        } else if (status === 'unauthenticated') {
-            // Handle case where user is not logged in
+            ]);
+
+            // Combine and shuffle for variety
+            const allArtists = [...mediumArtists.body.items, ...shortArtists.body.items];
+            const allTracks = [...mediumTracks.body.items, ...shortTracks.body.items];
+            
+            // Remove duplicates and take top selections
+            const uniqueArtists = allArtists.filter((artist, index, self) => 
+                index === self.findIndex(a => a.id === artist.id)
+            ).slice(0, 20);
+            
+            const uniqueTracks = allTracks.filter((track, index, self) =>
+                index === self.findIndex(t => t.id === track.id)
+            ).slice(0, 10);
+            
+            console.log('Mixed timeframe artists:', uniqueArtists);
+            setTopArtists(uniqueArtists as Artist[]);
+            console.log('Mixed timeframe tracks:', uniqueTracks);
+            setTopTracks(uniqueTracks as Track[]);
             setLoading(false);
-            setError('Please log in to view your dashboard.');
-            // Optionally redirect or show login prompt more prominently
-        } else if (status === 'loading') {
-            setLoading(true); // Ensure loading is true while session is loading
+        } catch (err) {
+            console.error('Error fetching top artists:', err);
+            setError('Failed to fetch your Spotify data.');
+            setLoading(false);
         }
-    }, [status, accessToken, session?.error]); // Depend on session status and token
+    };
 
     // Fetch user avatars
     useEffect(() => {
