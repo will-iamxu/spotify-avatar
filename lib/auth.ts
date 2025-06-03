@@ -19,20 +19,43 @@ export const authOptions: AuthOptions = {
         }),
     ],
     secret: process.env.NEXTAUTH_SECRET,
-    debug: process.env.NODE_ENV === 'development',
+    debug: true, // Enable debug for production to help diagnose issues
     session: {
         strategy: 'database',
     },
     callbacks: {
         async signIn({ user, account, profile }) {
-            console.log('SignIn callback:', { user, account, profile });
-            return true;
+            try {
+                console.log('SignIn callback started:', { 
+                    userId: user?.id, 
+                    email: user?.email,
+                    provider: account?.provider 
+                });
+                
+                // Store Spotify ID in the user record for future reference
+                if (account?.provider === 'spotify' && profile?.id) {
+                    console.log('Updating user with Spotify ID:', profile.id);
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('SignIn callback error:', error);
+                return false;
+            }
         },
         async session({ session, user }) {
-            if (user) {
-                session.user = user;
+            try {
+                if (user) {
+                    session.user = user;
+                }
+                return session;
+            } catch (error) {
+                console.error('Session callback error:', error);
+                return session;
             }
-            return session;
         },
+    },
+    pages: {
+        error: '/api/auth/signin',
     },
 };

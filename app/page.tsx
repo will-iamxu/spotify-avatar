@@ -53,6 +53,15 @@ export default function HomePage() {
             🎵 SoundCard
           </motion.div>
           <div className="flex space-x-6">
+            <Link href="/about" className="text-gray-300 hover:text-white transition-colors">
+              About
+            </Link>
+            <Link href="/how-it-works" className="text-gray-300 hover:text-white transition-colors">
+              How It Works
+            </Link>
+            <Link href="/faq" className="text-gray-300 hover:text-white transition-colors">
+              FAQ
+            </Link>
             <Link href="#features" className="text-gray-300 hover:text-white transition-colors">
               Features
             </Link>
@@ -105,13 +114,6 @@ export default function HomePage() {
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-700 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
             </button>
-            
-            <Link 
-              href="#demo" 
-              className="text-gray-300 hover:text-white font-semibold py-4 px-8 rounded-full border border-gray-600 hover:border-gray-400 transition-all duration-300"
-            >
-              See Demo
-            </Link>
           </motion.div>
         </div>
 
@@ -230,6 +232,65 @@ export default function HomePage() {
           </div>
         </motion.div>
       </section>
+
+      {/* Footer */}
+      <footer className="py-16 px-6 border-t border-white/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="md:col-span-2">
+              <div className="text-2xl font-bold text-white mb-4">🎵 SoundCard</div>
+              <p className="text-gray-400 mb-6 max-w-md">
+                Transform your Spotify listening history into stunning AI-generated trading cards. 
+                Discover your musical DNA and share your unique sound profile.
+              </p>
+              <div className="text-sm text-gray-500">
+                Made with ❤️ for music lovers
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-white font-semibold mb-4">Product</h3>
+              <div className="space-y-2">
+                <Link href="/about" className="block text-gray-400 hover:text-white transition-colors">
+                  About
+                </Link>
+                <Link href="/how-it-works" className="block text-gray-400 hover:text-white transition-colors">
+                  How It Works
+                </Link>
+                <Link href="/faq" className="block text-gray-400 hover:text-white transition-colors">
+                  FAQ
+                </Link>
+                <Link href="#features" className="block text-gray-400 hover:text-white transition-colors">
+                  Features
+                </Link>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-white font-semibold mb-4">Legal</h3>
+              <div className="space-y-2">
+                <Link href="/privacy" className="block text-gray-400 hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+                <a 
+                  href="https://developer.spotify.com/terms" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block text-gray-400 hover:text-white transition-colors"
+                >
+                  Spotify Terms
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-12 pt-8 border-t border-white/10 text-center">
+            <p className="text-gray-500 text-sm">
+              © 2025 SoundCard. Not affiliated with Spotify AB.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
