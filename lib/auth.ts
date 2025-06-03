@@ -3,6 +3,13 @@ import SpotifyProvider from 'next-auth/providers/spotify';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from './db';
 
+interface SpotifyProfile {
+  id: string;
+  display_name: string;
+  email: string;
+  images: { url: string }[];
+}
+
 const scopes = [
     'user-read-private',
     'user-read-email',
@@ -33,8 +40,8 @@ export const authOptions: AuthOptions = {
                 });
                 
                 // Store Spotify ID in the user record for future reference
-                if (account?.provider === 'spotify' && (profile as any)?.id) {
-                    console.log('Updating user with Spotify ID:', (profile as any).id);
+                if (account?.provider === 'spotify' && (profile as SpotifyProfile)?.id) {
+                    console.log('Updating user with Spotify ID:', (profile as SpotifyProfile).id);
                 }
                 
                 return true;
