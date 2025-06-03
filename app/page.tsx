@@ -56,9 +56,6 @@ export default function HomePage() {
             <Link href="#features" className="text-gray-300 hover:text-white transition-colors">
               Features
             </Link>
-            <Link href="#features" className="text-gray-300 hover:text-white transition-colors">
-              About
-            </Link>
           </div>
         </div>
       </nav>
