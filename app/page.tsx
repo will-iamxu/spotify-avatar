@@ -81,7 +81,7 @@ export default function HomePage() {
             
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-8 max-w-2xl mx-auto">
               <p className="text-yellow-200 text-sm">
-                ⚠️ <strong>Development Mode:</strong> Due to Spotify's new policies, new users must be manually approved. 
+                ⚠️ <strong>Development Mode:</strong> Due to Spotify&apos;s new policies, new users must be manually approved. 
                 Contact the developer to be added to the allowlist.
               </p>
             </div>
