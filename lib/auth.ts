@@ -33,8 +33,8 @@ export const authOptions: AuthOptions = {
                 });
                 
                 // Store Spotify ID in the user record for future reference
-                if (account?.provider === 'spotify' && profile?.id) {
-                    console.log('Updating user with Spotify ID:', profile.id);
+                if (account?.provider === 'spotify' && (profile as any)?.id) {
+                    console.log('Updating user with Spotify ID:', (profile as any).id);
                 }
                 
                 return true;
