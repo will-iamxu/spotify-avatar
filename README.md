@@ -1,6 +1,6 @@
 # SoundCard - Spotify AI Trading Cards
 
-Transform your music taste into stunning AI-generated trading cards! SoundCard analyzes your Spotify listening habits and creates unique Pokémon-style trading cards that represent your musical DNA.
+Turn your Spotify music into personalized trading cards! SoundCard analyzes your listening habits and creates unique Pokémon-style trading cards that reflect your music taste.
 
 🎴 **Coming Soon:** We're actively developing SoundCard into a full trading card game where you can trade cards with friends, battle with your musical creatures, and collect rare cards based on unique listening patterns!
 
@@ -15,9 +15,10 @@ Transform your music taste into stunning AI-generated trading cards! SoundCard a
 - **Real-time Sync** - Fresh data on every session
 
 #### AI Card Generation
-- **Advanced AI Models** - Powered by Replicate's Recraft-v3 model
-- **Pokémon-Style Trading Cards** - Complete with HP, attacks, and flavor text
-- **Personalized Prompts** - Cards reflect your specific artists, genres, and tracks
+- **AI-Powered Creation** - Uses Replicate's Recraft-v3 model
+- **Pokémon-Style Trading Cards** - Complete with varied HP, attacks, and flavor text
+- **Dynamic Card Stats** - HP ranges from 60-150, attacks deal 30-120 damage
+- **Music-Based Attacks** - Attack names like "Sonic Blast" and "Rhythm Wave"
 - **Pack Opening Animation** - Exciting unboxing experience
 
 ### Planned Features (TCG Development)
@@ -29,11 +30,15 @@ Transform your music taste into stunning AI-generated trading cards! SoundCard a
 
 ### Database & Storage
 - **PostgreSQL Database** with Prisma ORM
+- **AWS Secrets Manager Integration** - Automatic password rotation support
+- **Dynamic Database Credentials** - Handles credential rotation seamlessly
 - **AWS S3 Integration** - Secure image storage with signed URLs
 - **Avatar Collection** - Personal gallery of generated cards
 
 ### Security & Performance
 - **CloudWatch Logging** - Comprehensive monitoring
+- **Automatic Credential Rotation** - Supports AWS RDS password rotation
+- **Dynamic Authentication** - NextAuth adapter with fresh credentials
 - **Secure File Handling** - Direct S3 uploads with presigned URLs
 - **Optimized Images** - Next.js image optimization
 
@@ -65,7 +70,8 @@ Transform your music taste into stunning AI-generated trading cards! SoundCard a
 
 ### Backend & Database
 - **Database**: [PostgreSQL](https://www.postgresql.org/) with [Prisma ORM](https://www.prisma.io/)
-- **Authentication**: [NextAuth.js](https://next-auth.js.org/) with Spotify Provider
+- **Credentials**: [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) with automatic rotation
+- **Authentication**: [NextAuth.js](https://next-auth.js.org/) with dynamic Spotify Provider
 - **Cloud Storage**: [AWS S3](https://aws.amazon.com/s3/) with presigned URLs
 - **Monitoring**: [AWS CloudWatch](https://aws.amazon.com/cloudwatch/)
 
@@ -111,8 +117,16 @@ Transform your music taste into stunning AI-generated trading cards! SoundCard a
    Create a `.env.local` file in the project root:
 
    ```env
-   # Database
+   # Database Configuration
+   # For local development
    DATABASE_URL="postgresql://username:password@localhost:5432/soundcard_db"
+   
+   # For production with AWS Secrets Manager (automatic password rotation)
+   USE_SECRETS_MANAGER=true
+   DATABASE_SECRET_NAME=rds!db-985ee635-9d07-4dcc-bdca-cea49ba9def8
+   DB_HOST=your-rds-host.amazonaws.com
+   DB_PORT=5432
+   DB_NAME=soundcard_db
 
    # Spotify OAuth (from Spotify Developer Dashboard)
    SPOTIFY_CLIENT_ID=your_spotify_client_id
@@ -126,14 +140,12 @@ Transform your music taste into stunning AI-generated trading cards! SoundCard a
    # AI Generation
    REPLICATE_API_TOKEN=your_replicate_api_token
 
-   # AWS S3 (Optional for local development)
+   # AWS Configuration
    AWS_ACCESS_KEY_ID=your_aws_access_key
    AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-   AWS_REGION=us-east-1
+   AWS_REGION=us-east-2
    AWS_S3_BUCKET_NAME=your-s3-bucket-name
-
-   # CloudWatch (Optional)
-   AWS_CLOUDWATCH_LOG_GROUP=soundcard-logs
+   CLOUDWATCH_LOG_GROUP=soundcard-logs
    ```
 
 4. **Database setup:**
@@ -176,15 +188,17 @@ Transform your music taste into stunning AI-generated trading cards! SoundCard a
 | `NEXTAUTH_SECRET` | Session encryption key | Generate with `openssl rand -base64 32` |
 | `REPLICATE_API_TOKEN` | Replicate AI API token | `r8_abc123...` |
 
-### Optional Variables (AWS Features)
+### AWS Configuration (Optional)
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `AWS_ACCESS_KEY_ID` | AWS access key | Required for S3 |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key | Required for S3 |
+| `USE_SECRETS_MANAGER` | Enable dynamic credential retrieval | `false` |
+| `DATABASE_SECRET_NAME` | AWS Secrets Manager secret name | Required if using Secrets Manager |
+| `AWS_ACCESS_KEY_ID` | AWS access key | Required for S3/CloudWatch/Secrets |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key | Required for S3/CloudWatch/Secrets |
 | `AWS_REGION` | AWS region | `us-east-1` |
 | `AWS_S3_BUCKET_NAME` | S3 bucket for images | Required for S3 |
-| `AWS_CLOUDWATCH_LOG_GROUP` | CloudWatch log group | `soundcard-logs` |
+| `CLOUDWATCH_LOG_GROUP` | CloudWatch log group | `soundcard-logs` |
 
 ## Database Schema
 
@@ -199,7 +213,7 @@ The application uses PostgreSQL with Prisma ORM. Here are the main models:
 
 ### Trading Card Generation
 Cards are generated using a sophisticated prompt that includes:
-- **Musical DNA**: Top artists, tracks, and genres
+- **Music Analysis**: Top artists, tracks, and genres
 - **Visual Style**: Pokémon TCG-inspired design
 - **Dynamic Attacks**: Named after your music preferences
 - **Stats**: HP, damage values, retreat costs
@@ -219,6 +233,29 @@ Cards are generated using a sophisticated prompt that includes:
 
 ## Deployment Guide
 
+### AWS Secrets Manager Setup (Production)
+
+For production deployments with AWS RDS, enable automatic credential rotation:
+
+1. **Configure RDS with Secrets Manager:**
+   - Enable automatic rotation in AWS RDS (7-day cycle recommended)
+   - Note the secret name (format: `rds!db-xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx`)
+   - Ensure IAM user has `secretsmanager:GetSecretValue` permission
+
+2. **Required IAM Policy:**
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Action": "secretsmanager:GetSecretValue",
+         "Resource": "arn:aws:secretsmanager:region:account:secret:rds!db-*"
+       }
+     ]
+   }
+   ```
+
 ### Vercel Deployment (Recommended)
 
 1. **Prepare for deployment:**
@@ -234,18 +271,38 @@ Cards are generated using a sophisticated prompt that includes:
 
 3. **Configure Environment Variables:**
    In Vercel Dashboard → Settings → Environment Variables, add:
+   
+   **For AWS Secrets Manager (Production):**
    ```env
-   DATABASE_URL=your_production_database_url
+   # Dynamic Database Credentials
+   USE_SECRETS_MANAGER=true
+   DATABASE_SECRET_NAME=rds!db-985ee635-9d07-4dcc-bdca-cea49ba9def8
+   DB_HOST=your-rds-host.amazonaws.com
+   DB_PORT=5432
+   DB_NAME=soundcard_db
+   
+   # Authentication
    SPOTIFY_CLIENT_ID=your_spotify_client_id
    SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
    NEXT_PUBLIC_SPOTIFY_CLIENT_ID=your_spotify_client_id
    NEXTAUTH_SECRET=your_strong_production_secret
    NEXTAUTH_URL=https://your-app.vercel.app
+   
+   # AI Generation
    REPLICATE_API_TOKEN=your_replicate_token
+   
+   # AWS Services
    AWS_ACCESS_KEY_ID=your_aws_key
    AWS_SECRET_ACCESS_KEY=your_aws_secret
    AWS_REGION=us-east-1
    AWS_S3_BUCKET_NAME=your-s3-bucket
+   CLOUDWATCH_LOG_GROUP=soundcard-logs
+   ```
+   
+   **For Static Database URL (Development):**
+   ```env
+   DATABASE_URL=your_production_database_url
+   # ... other variables same as above
    ```
 
 4. **Update Spotify App Settings:**
@@ -343,9 +400,16 @@ npm run lint            # Run ESLint
 
 **Database Connection Issues**
 ```bash
+# For static DATABASE_URL:
 # Check DATABASE_URL format
 # Verify database is running
 # Run: npx prisma db push
+
+# For AWS Secrets Manager:
+# Verify USE_SECRETS_MANAGER=true
+# Check DATABASE_SECRET_NAME matches RDS secret
+# Ensure IAM permissions for secretsmanager:GetSecretValue
+# Verify DB_HOST, DB_PORT, DB_NAME environment variables
 ```
 
 **AI Generation Failures**
@@ -355,11 +419,17 @@ npm run lint            # Run ESLint
 # Review prompt length (max ~2000 chars)
 ```
 
-**AWS S3 Issues**
+**AWS Issues**
 ```bash
+# S3 Storage:
 # Verify AWS credentials
 # Check bucket permissions
 # Ensure bucket exists and is in correct region
+
+# Secrets Manager:
+# Check secret name format: rds!db-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+# Verify IAM policy allows GetSecretValue action
+# Test with: aws secretsmanager get-secret-value --secret-id your-secret-name
 ```
 
 ### Debug Mode
