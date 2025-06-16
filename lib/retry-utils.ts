@@ -1,3 +1,22 @@
+/**
+ * Retry utilities for handling transient API failures
+ * 
+ * This module provides retry logic with exponential backoff for API calls.
+ * Includes specialized functions for Spotify and Replicate API integration
+ * with appropriate error handling and rate limiting support.
+ * 
+ * @module retry-utils
+ */
+
+/**
+ * Configuration options for retry behavior
+ * 
+ * @interface RetryOptions
+ * @property {number} maxAttempts - Maximum number of retry attempts
+ * @property {number} baseDelay - Base delay in milliseconds before first retry
+ * @property {number} maxDelay - Maximum delay in milliseconds between retries
+ * @property {number} backoffMultiplier - Multiplier for exponential backoff
+ */
 export interface RetryOptions {
   maxAttempts: number;
   baseDelay: number;
@@ -5,6 +24,10 @@ export interface RetryOptions {
   backoffMultiplier: number;
 }
 
+/**
+ * Default retry configuration
+ * Uses exponential backoff with reasonable defaults for most API calls
+ */
 const defaultOptions: RetryOptions = {
   maxAttempts: 3,
   baseDelay: 1000, // 1 second
@@ -12,6 +35,20 @@ const defaultOptions: RetryOptions = {
   backoffMultiplier: 2
 };
 
+/**
+ * Generic retry wrapper with exponential backoff
+ * 
+ * @template T
+ * @param {() => Promise<T>} operation - Async operation to retry
+ * @param {Partial<RetryOptions>} options - Retry configuration options
+ * @returns {Promise<T>} Result of the operation
+ * 
+ * @example
+ * const result = await withRetry(() => fetch('/api/data'), {
+ *   maxAttempts: 5,
+ *   baseDelay: 2000
+ * });
+ */
 export async function withRetry<T>(
   operation: () => Promise<T>,
   options: Partial<RetryOptions> = {}

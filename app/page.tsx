@@ -1,3 +1,20 @@
+/**
+ * Home Page Component
+ * 
+ * Landing page for SoundCard application featuring hero section, features overview,
+ * and call-to-action for Spotify authentication. Includes animated elements and
+ * responsive design with development mode notices.
+ * 
+ * Features:
+ * - Hero section with gradient text and animations
+ * - Features showcase with icons and descriptions
+ * - Spotify OAuth integration button
+ * - Responsive footer with navigation links
+ * - Automatic redirect to dashboard if logged in
+ * 
+ * @component
+ */
+
 'use client';
 
 import { signIn, useSession } from 'next-auth/react';
@@ -7,6 +24,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
+/**
+ * HomePage Component
+ * 
+ * Renders the main landing page with hero section, features, and authentication.
+ * Automatically redirects authenticated users to the dashboard.
+ * 
+ * @returns {JSX.Element} Complete home page interface
+ */
 export default function HomePage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -84,14 +109,14 @@ export default function HomePage() {
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Transform your Spotify listening history into stunning AI-generated trading cards. 
-              Discover your musical DNA and share your unique sound profile with the world.
+              Turn your Spotify music into personalized trading cards. 
+              See your music taste as collectible artwork.
             </p>
             
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-8 max-w-2xl mx-auto">
               <p className="text-yellow-200 text-sm">
-                ⚠️ <strong>Development Mode:</strong> Due to Spotify&apos;s new policies, new users must be manually approved. 
-                Contact the developer to be added to the allowlist.
+                ⚠️ <strong>Development Mode:</strong> New users need manual approval due to Spotify&apos;s policies. 
+                Contact the developer to get access.
               </p>
             </div>
           </motion.div>
@@ -176,10 +201,10 @@ export default function HomePage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Powered by Innovation
+              How It Works
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Advanced AI technology meets your musical personality to create something truly unique.
+              We use AI to turn your music data into custom trading cards that reflect your taste.
             </p>
           </motion.div>
 
@@ -240,8 +265,7 @@ export default function HomePage() {
             <div className="md:col-span-2">
               <div className="text-2xl font-bold text-white mb-4">🎵 SoundCard</div>
               <p className="text-gray-400 mb-6 max-w-md">
-                Transform your Spotify listening history into stunning AI-generated trading cards. 
-                Discover your musical DNA and share your unique sound profile.
+                Turn your Spotify music into personalized trading cards that show off your taste.
               </p>
               <div className="text-sm text-gray-500">
                 Made with ❤️ for music lovers

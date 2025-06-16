@@ -1,3 +1,15 @@
+/**
+ * API Route: Generate Avatar Trading Card
+ * 
+ * This endpoint generates personalized trading cards based on user's Spotify music data.
+ * Uses AI to create unique Pokémon-style cards reflecting musical preferences.
+ * 
+ * @route POST /api/generate-avatar
+ * @access Private (requires authentication)
+ * 
+ * @module api/generate-avatar
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../lib/auth';
@@ -7,21 +19,57 @@ import { uploadImageToS3, generateAvatarKey, getSignedDownloadUrl } from '../../
 import { replicateApiCall, withRetry } from '../../../lib/retry-utils';
 import { rateLimitResponse, checkRateLimit, addRateLimitHeaders } from '../../../lib/rate-limiter';
 
-// Initialize Replicate client with API token from environment variables
+/**
+ * Replicate AI client for image generation
+ * Configured with API token from environment variables
+ */
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
-// Define the expected input structure from the frontend
+/**
+ * Request body structure for avatar generation
+ * 
+ * @interface GenerateAvatarRequest
+ * @property {string[]} [genres] - User's top music genres
+ * @property {Array<{name: string}>} [artists] - User's top artists
+ * @property {Array<{name: string, artists: string[]}>} [tracks] - User's top tracks
+ */
 interface GenerateAvatarRequest {
   genres?: string[];
-  artists?: { name: string }[]; // Expect an array of objects with a name property
-  tracks?: { name: string; artists: string[] }[]; // Add tracks to the request
+  artists?: { name: string }[];
+  tracks?: { name: string; artists: string[] }[];
 }
 
-// Define the specific Replicate model to use (removing version hash as requested)
+/**
+ * AI model identifier for Recraft V3 image generation
+ * High-quality model optimized for trading card artwork
+ */
 const MODEL_NAME = "recraft-ai/recraft-v3";
 
+/**
+ * POST /api/generate-avatar
+ * 
+ * Generates a personalized trading card based on user's Spotify music data.
+ * 
+ * @param {NextRequest} request - Request object containing user's music data
+ * @returns {NextResponse} Generated avatar data or error response
+ * 
+ * @example
+ * POST /api/generate-avatar
+ * Body: {
+ *   "genres": ["electronic", "house"],
+ *   "artists": [{"name": "Daft Punk"}, {"name": "Justice"}],
+ *   "tracks": [{"name": "One More Time", "artists": ["Daft Punk"]}]
+ * }
+ * 
+ * Response: {
+ *   "id": "avatar_123",
+ *   "imageUrl": "https://signed-url...",
+ *   "prompt": "Generated prompt text...",
+ *   "status": "COMPLETED"
+ * }
+ */
 export async function POST(request: NextRequest) {
   if (!process.env.REPLICATE_API_TOKEN) {
     console.error("REPLICATE_API_TOKEN is not set");
@@ -109,15 +157,37 @@ export async function POST(request: NextRequest) {
     prompt += ` It also embodies elements from tracks such as ${topTrackInfo.join('; and ')}.`;
   }
 
-  prompt += ` The card should include:
-- The creature's name (invent something creative based on the music).
-- HP (e.g., 120 HP).
-- An illustration of the creature in a dynamic pose, fitting the card frame. Style: vibrant, anime-inspired, trading card art.
-- One or two attacks. Name the attacks based on the genres or artists (e.g., 'Synth Wave Burst' or 'Indie Rock Charge'). Include damage numbers (e.g., 60, 100+).
-- Weakness and Resistance symbols (optional, can be generic energy types).
-- Retreat cost (e.g., 2 energy symbols).
-- A short flavor text description at the bottom relating the creature to its musical inspiration.
-Layout: Standard Pokémon TCG card layout. Avoid photorealism. Focus on a clean, illustrated trading card look.`;
+  // Generate varied HP values
+  const hpValues = [60, 70, 80, 90, 100, 110, 130, 140, 150];
+  const selectedHP = hpValues[Math.floor(Math.random() * hpValues.length)];
+  
+  // Generate attack names and damage based on music
+  const attackPrefixes = ['Sonic', 'Rhythm', 'Beat', 'Melody', 'Bass', 'Echo', 'Vibe', 'Harmony'];
+  const attackSuffixes = ['Blast', 'Wave', 'Strike', 'Pulse', 'Storm', 'Burst', 'Rush', 'Force'];
+  
+  const attack1Name = `${attackPrefixes[Math.floor(Math.random() * attackPrefixes.length)]} ${attackSuffixes[Math.floor(Math.random() * attackSuffixes.length)]}`;
+  const attack2Name = `${attackPrefixes[Math.floor(Math.random() * attackPrefixes.length)]} ${attackSuffixes[Math.floor(Math.random() * attackSuffixes.length)]}`;
+  
+  const attack1Damage = [30, 40, 50, 60, 70][Math.floor(Math.random() * 5)];
+  const attack2Damage = [80, 90, 100, 110, 120][Math.floor(Math.random() * 5)];
+
+  prompt += ` 
+
+Create a Pokemon-style trading card with this exact layout:
+
+TOP SECTION:
+- Creature name in large text at the very top
+- "${selectedHP} HP" in the top right corner
+
+MAIN ARTWORK:
+- Large central illustration of the creature
+
+BOTTOM SECTION:
+- Attack 1: "${attack1Name}" - ${attack1Damage} damage
+- Attack 2: "${attack2Name}" - ${attack2Damage} damage
+- Small flavor text at the bottom
+
+IMPORTANT: Use standard Pokemon card layout with yellow border. All text must be clearly readable and properly positioned within the card frame. Make sure the creature name fits at the top and HP is visible in the corner.`;
 
   console.log("Generated Prompt:", prompt);
 

@@ -14,13 +14,13 @@ export default function AboutPage() {
     },
     {
       icon: CpuChipIcon,
-      title: 'Advanced AI Generation',
-      description: 'Using cutting-edge AI technology, we transform your music data into stunning, personalized trading card artwork.'
+      title: 'AI Card Generation',
+      description: 'We use AI to turn your music data into custom trading card artwork that matches your taste.'
     },
     {
       icon: SparklesIcon,
       title: 'Unique Card Styles',
-      description: 'Each card features different art styles, creatures, and themes based on your specific musical tastes and listening patterns.'
+      description: 'Each card has different art styles, creatures, and themes based on your music preferences.'
     },
     {
       icon: HeartIcon,
@@ -90,8 +90,7 @@ export default function AboutPage() {
                 musical journey.
               </p>
               <p className="text-lg text-gray-300 leading-relaxed">
-                By combining advanced AI technology with deep music analysis, we transform your listening 
-                data into beautiful, collectible art that you can treasure and share with fellow music lovers.
+                We analyze your music and turn it into collectible art that you can keep and share with other music fans.
               </p>
             </motion.div>
 

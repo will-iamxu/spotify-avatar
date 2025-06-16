@@ -1,5 +1,25 @@
+/**
+ * AWS CloudWatch Logs integration for production monitoring
+ * 
+ * This module provides a comprehensive logging solution that sends structured logs
+ * to AWS CloudWatch in production while maintaining console logging for development.
+ * Features buffering, automatic flushing, and error handling.
+ * 
+ * @module cloudwatch-logger
+ */
+
 import { CloudWatchLogsClient, PutLogEventsCommand, CreateLogGroupCommand, CreateLogStreamCommand, DescribeLogGroupsCommand } from '@aws-sdk/client-cloudwatch-logs';
 
+/**
+ * Structure for log events with metadata
+ * 
+ * @interface LogEvent
+ * @property {'INFO' | 'WARN' | 'ERROR' | 'DEBUG'} level - Log severity level
+ * @property {string} message - Main log message
+ * @property {Record<string, unknown>} [metadata] - Additional structured data
+ * @property {string} [userId] - Associated user ID for context
+ * @property {string} [endpoint] - API endpoint being logged
+ */
 interface LogEvent {
   level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
   message: string;
@@ -8,14 +28,37 @@ interface LogEvent {
   endpoint?: string;
 }
 
+/**
+ * CloudWatch logging service with buffering and automatic flushing
+ * 
+ * Handles log aggregation, CloudWatch integration, and fallback to console logging.
+ * Automatically creates log groups and streams as needed.
+ */
 class CloudWatchLogger {
+  /** AWS CloudWatch Logs client instance */
   private client: CloudWatchLogsClient;
+  
+  /** CloudWatch log group name */
   private logGroupName: string;
+  
+  /** CloudWatch log stream name (includes date for daily rotation) */
   private logStreamName: string;
+  
+  /** CloudWatch sequence token for log ordering */
   private sequenceToken?: string;
+  
+  /** Buffer for batching log events before sending to CloudWatch */
   private logBuffer: LogEvent[] = [];
+  
+  /** Timeout handle for scheduled log flushing */
   private flushTimeout?: NodeJS.Timeout;
 
+  /**
+   * Initialize CloudWatch logger with AWS credentials and configuration
+   * 
+   * Creates CloudWatch client and sets up log group/stream naming based on environment.
+   * Log streams are date-based for automatic daily rotation.
+   */
   constructor() {
     this.client = new CloudWatchLogsClient({
       region: process.env.AWS_REGION || 'us-east-1',
@@ -29,6 +72,12 @@ class CloudWatchLogger {
     this.logStreamName = `${process.env.NODE_ENV || 'development'}-${new Date().toISOString().split('T')[0]}`;
   }
 
+  /**
+   * Initialize CloudWatch log group and stream
+   * 
+   * Creates log group and daily log stream if they don't exist.
+   * Gracefully handles errors and continues without CloudWatch if setup fails.
+   */
   async init(): Promise<void> {
     try {
       // Check if log group exists, create if not
@@ -110,6 +159,11 @@ class CloudWatchLogger {
     }, 5000); // Flush every 5 seconds
   }
 
+  /**
+   * Log an event with structured data
+   * 
+   * @param {LogEvent} event - Log event with level, message, and metadata
+   */
   log(event: LogEvent): void {
     // Always log to console for development
     const consoleMessage = `[${event.level}] ${event.message}`;
@@ -148,6 +202,16 @@ class CloudWatchLogger {
 // Singleton instance
 let logger: CloudWatchLogger | null = null;
 
+/**
+ * Get or create singleton CloudWatch logger instance
+ * 
+ * @returns {CloudWatchLogger} Initialized logger instance
+ * 
+ * @example
+ * const logger = getLogger();
+ * logger.info('User logged in', { userId: '123' });
+ * logger.error('API error', { error: 'Database timeout' });
+ */
 export function getLogger(): CloudWatchLogger {
   if (!logger) {
     logger = new CloudWatchLogger();

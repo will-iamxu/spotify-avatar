@@ -237,7 +237,7 @@ export default function HowItWorksPage() {
           >
             <h2 className="text-4xl font-bold text-white mb-6">The Technology Behind the Magic</h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              We use cutting-edge AI and music analysis to create something truly unique for every user.
+              We use AI and music analysis to create personalized cards for each user.
             </p>
           </motion.div>
 

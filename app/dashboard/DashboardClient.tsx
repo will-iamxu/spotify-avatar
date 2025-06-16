@@ -1,3 +1,5 @@
+// Dashboard for SoundCard pack opening and collection management
+
 'use client';
 
 import Image from 'next/image';
@@ -21,7 +23,6 @@ import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import toast, { Toaster } from 'react-hot-toast';
 import SpotifyWebApi from 'spotify-web-api-node';
 
-// Define a type for the artist data we expect
 interface Artist {
     id: string;
     name: string;
@@ -29,14 +30,12 @@ interface Artist {
     genres: string[];
 }
 
-// Define a type for the track data we expect
 interface Track {
     id: string;
     name: string;
     artists: { name: string }[];
 }
 
-// Initialize the Spotify API client
 const spotifyApi = new SpotifyWebApi({
     clientId: process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
 });
@@ -102,19 +101,19 @@ export default function DashboardClient() {
 
     const fetchSpotifyData = async () => {
         try {
-            // Get mix of time ranges for variety - like opening a fresh pack!
+            // Mix recent and older music for variety
             const [mediumArtists, mediumTracks, shortArtists, shortTracks] = await Promise.all([
                 spotifyApi.getMyTopArtists({ limit: 12, time_range: 'medium_term' }), // 6 months
                 spotifyApi.getMyTopTracks({ limit: 6, time_range: 'medium_term' }),
-                spotifyApi.getMyTopArtists({ limit: 8, time_range: 'short_term' }), // 4 weeks - current favorites
+                spotifyApi.getMyTopArtists({ limit: 8, time_range: 'short_term' }), // 4 weeks
                 spotifyApi.getMyTopTracks({ limit: 4, time_range: 'short_term' })
             ]);
 
-            // Combine and shuffle for variety
+            // Combine and remove duplicates
             const allArtists = [...mediumArtists.body.items, ...shortArtists.body.items];
             const allTracks = [...mediumTracks.body.items, ...shortTracks.body.items];
             
-            // Remove duplicates and take top selections
+            // Remove duplicates
             const uniqueArtists = allArtists.filter((artist, index, self) => 
                 index === self.findIndex(a => a.id === artist.id)
             ).slice(0, 20);
@@ -233,13 +232,13 @@ export default function DashboardClient() {
     const handleShare = (avatarUrl: string) => {
         if (navigator.share) {
             navigator.share({
-                title: 'My Spotify Avatar',
-                text: 'Check out my AI-generated Spotify avatar!',
+                title: 'My SoundCard',
+                text: 'Check out my music-based trading card!',
                 url: avatarUrl,
             });
         } else {
             navigator.clipboard.writeText(avatarUrl);
-            toast.success('Avatar URL copied to clipboard!');
+            toast.success('Card URL copied to clipboard!');
         }
     };
 
@@ -360,7 +359,7 @@ export default function DashboardClient() {
                                             {loading ? (
                                                 <div className="text-center py-8">
                                                     <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                                    <p className="text-gray-300">Analyzing your Spotify data...</p>
+                                                    <p className="text-gray-300">Loading your music data...</p>
                                                 </div>
                                             ) : error ? (
                                                 <div className="text-center py-8">
@@ -414,7 +413,7 @@ export default function DashboardClient() {
                                                                 >
                                                                     ✨
                                                                 </motion.div>
-                                                                <span>Crafting Your Card...</span>
+                                                                <span>Creating Your Card...</span>
                                                             </>
                                                         ) : (
                                                             <>
@@ -513,8 +512,8 @@ export default function DashboardClient() {
                                                             >
                                                                 🎴
                                                             </motion.div>
-                                                            <p className="text-gray-400">Your SoundCard will appear here</p>
-                                                            <p className="text-sm text-gray-500 mt-2">Open a pack to reveal your musical identity!</p>
+                                                            <p className="text-gray-400">Your card will appear here</p>
+                                                            <p className="text-sm text-gray-500 mt-2">Open a pack to see your first card!</p>
                                                         </div>
                                                     )}
                                                 </div>
@@ -656,7 +655,7 @@ export default function DashboardClient() {
 
                                                     {/* Music Summary */}
                                                     <div className="space-y-4">
-                                                        <h4 className="text-lg font-semibold text-white">Your Music DNA</h4>
+                                                        <h4 className="text-lg font-semibold text-white">Your Music Taste</h4>
                                                         {topArtists.length > 0 && (
                                                             <div>
                                                                 <p className="text-sm text-gray-400 mb-2">Top Artists</p>
