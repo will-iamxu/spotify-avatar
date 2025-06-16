@@ -9,8 +9,7 @@
 
 import { AuthOptions } from 'next-auth';
 import SpotifyProvider from 'next-auth/providers/spotify';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { prisma } from './db';
+import { DynamicPrismaAdapter } from './dynamic-prisma-adapter';
 
 /**
  * TypeScript interface for Spotify user profile data
@@ -50,8 +49,8 @@ const scopes = [
  * @constant {AuthOptions} authOptions - Complete NextAuth configuration object
  */
 export const authOptions: AuthOptions = {
-    // Use Prisma adapter for database-based sessions
-    adapter: PrismaAdapter(prisma),
+    // Use Dynamic Prisma adapter for database-based sessions with Secrets Manager
+    adapter: DynamicPrismaAdapter(),
     
     // Configure Spotify OAuth provider
     providers: [
