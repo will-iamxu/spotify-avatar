@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../lib/auth';
-import { prisma } from '../../../lib/db';
+import { getDynamicPrismaClient } from '../../../lib/db-dynamic';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -12,6 +12,7 @@ export async function GET() {
 
   try {
     // Find the user's Spotify account
+    const prisma = await getDynamicPrismaClient();
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: {

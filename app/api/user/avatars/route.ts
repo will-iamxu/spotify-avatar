@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../../lib/auth';
-import { prisma } from '../../../../lib/db';
+import { getDynamicPrismaClient } from '../../../../lib/db-dynamic';
 import { getSignedDownloadUrl } from '../../../../lib/s3';
 
 export async function GET() {
@@ -11,6 +11,7 @@ export async function GET() {
   }
 
   try {
+    const prisma = await getDynamicPrismaClient();
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: {
@@ -93,6 +94,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   try {
+    const prisma = await getDynamicPrismaClient();
     const user = await prisma.user.findUnique({
       where: { email: session.user.email }
     });

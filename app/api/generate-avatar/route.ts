@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../lib/auth';
 import Replicate from 'replicate';
-import { prisma } from '../../../lib/db';
+import { getDynamicPrismaClient } from '../../../lib/db-dynamic';
 import { uploadImageToS3, generateAvatarKey, getSignedDownloadUrl } from '../../../lib/s3';
 import { replicateApiCall, withRetry } from '../../../lib/retry-utils';
 import { rateLimitResponse, checkRateLimit, addRateLimitHeaders } from '../../../lib/rate-limiter';
@@ -240,6 +240,7 @@ IMPORTANT: Use standard Pokemon card layout with yellow border. All text must be
 
     if (imageUrl) {
       // Find user in database (should exist due to Prisma adapter)
+      const prisma = await getDynamicPrismaClient();
       const user = await prisma.user.findUnique({
         where: { email: session.user.email }
       });
