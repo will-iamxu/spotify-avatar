@@ -36,7 +36,7 @@ export async function GET() {
       maskedSecret: Object.keys(secret).reduce((acc, key) => {
         acc[key] = key.toLowerCase().includes('password') ? '[HIDDEN]' : secret[key];
         return acc;
-      }, {} as any)
+      }, {} as Record<string, unknown>)
     });
 
   } catch (error) {
