@@ -1,4 +1,4 @@
-import { prisma } from './db';
+import { getDynamicPrismaClient } from './db-dynamic';
 import SpotifyWebApi from 'spotify-web-api-node';
 
 interface CachedSpotifyData {
@@ -16,6 +16,7 @@ export async function getCachedSpotifyData(
   forceRefresh = false
 ): Promise<CachedSpotifyData> {
   
+  const prisma = await getDynamicPrismaClient();
   const user = await prisma.user.findUnique({
     where: { id: userId }
   });
@@ -104,6 +105,7 @@ export async function getCachedSpotifyData(
 }
 
 export async function invalidateSpotifyCache(userId: string): Promise<void> {
+  const prisma = await getDynamicPrismaClient();
   await prisma.user.update({
     where: { id: userId },
     data: { 

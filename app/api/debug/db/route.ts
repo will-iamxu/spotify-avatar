@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { getDynamicPrismaClient } from '@/lib/db-dynamic';
 
 export async function GET() {
   try {
     // Test database connection
-    await prisma.$connect();
+    const prisma = await getDynamicPrismaClient();
     
     // Try a simple query
     const userCount = await prisma.user.count();
-    
-    await prisma.$disconnect();
     
     return NextResponse.json({ 
       status: 'success', 

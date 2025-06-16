@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from './db';
+import { getDynamicPrismaClient } from './db-dynamic';
 
 interface RateLimitRule {
   windowMs: number; // Time window in milliseconds
@@ -40,6 +40,7 @@ export async function checkRateLimit(
   const windowStart = new Date(Date.now() - rule.windowMs);
 
   // Count recent requests
+  const prisma = await getDynamicPrismaClient();
   const recentRequests = await prisma.apiUsage.count({
     where: {
       userId,
