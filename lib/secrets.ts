@@ -9,15 +9,16 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 
 /**
  * Database credentials structure from Secrets Manager
+ * RDS-managed secrets only contain username/password
  */
 interface DatabaseSecret {
   username: string;
   password: string;
-  engine: string;
-  host: string;
-  port: number;
-  dbname: string;
-  dbInstanceIdentifier: string;
+  engine?: string;
+  host?: string;
+  port?: number;
+  dbname?: string;
+  dbInstanceIdentifier?: string;
 }
 
 /**
@@ -65,9 +66,9 @@ export async function getDatabaseCredentials(secretName: string): Promise<Databa
 
     const secret: DatabaseSecret = JSON.parse(response.SecretString);
     
-    // Validate required fields
-    if (!secret.username || !secret.password || !secret.host || !secret.port || !secret.dbname) {
-      throw new Error('Invalid secret format - missing required database fields');
+    // Validate required fields (RDS secrets only have username/password)
+    if (!secret.username || !secret.password) {
+      throw new Error('Invalid secret format - missing username or password');
     }
 
     // Cache the credentials
@@ -85,6 +86,7 @@ export async function getDatabaseCredentials(secretName: string): Promise<Databa
 
 /**
  * Builds a PostgreSQL connection URL from Secrets Manager credentials
+ * For RDS-managed secrets, we get username/password and use environment vars for host/port/db
  * 
  * @param secretName - Name of the secret in AWS Secrets Manager
  * @returns Complete PostgreSQL connection URL
@@ -95,7 +97,12 @@ export async function getDatabaseUrl(secretName: string): Promise<string> {
   // URL encode the password to handle special characters
   const encodedPassword = encodeURIComponent(credentials.password);
   
-  const connectionUrl = `postgresql://${credentials.username}:${encodedPassword}@${credentials.host}:${credentials.port}/${credentials.dbname}?schema=public&sslmode=require`;
+  // For RDS secrets, get host/port/database from environment or use defaults
+  const host = credentials.host || process.env.RDS_HOST || 'spotify-avatar-db.cbu6aq6qujw9.us-east-2.rds.amazonaws.com';
+  const port = credentials.port || parseInt(process.env.RDS_PORT || '5432');
+  const dbname = credentials.dbname || process.env.RDS_DATABASE || 'spotify_avatar';
+  
+  const connectionUrl = `postgresql://${credentials.username}:${encodedPassword}@${host}:${port}/${dbname}?schema=public&sslmode=require`;
   
   return connectionUrl;
 }
